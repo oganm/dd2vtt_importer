@@ -76,6 +76,7 @@ func parse_dd2vtt(data:Dictionary, options: Dictionary, root_name:String = 'Map'
 	if options['Occluder Objects']:
 		var Objects = Node2D.new()
 		root.add_child(Objects)
+		Objects.show_behind_parent = true
 		Objects.owner = root
 		Objects.name = 'Objects'
 		for object in data.objects_line_of_sight:
