@@ -34,7 +34,8 @@ func get_preset_name(preset):
 func get_import_options(preset):
 	match preset:
 		Presets.DEFAULT:
-			return [{'name':'Import Walls','default_value':true}]
+			return [{'name':'Walls as Occluders','default_value':true},
+					{'name':'Walls as Lines','default_value':true}]
 		_:
 			return []
 
@@ -47,7 +48,7 @@ func import(source_file, save_path, options, platform_variants, gen_files):
 	var utils = utils_ref.new()
 	var data = utils.read_json(source_file)
 	
-	var scene = utils.parse_dd2vtt(data,options['Import Walls'])
+	var scene = utils.parse_dd2vtt(data,options)
 	
 	var packed_scene = PackedScene.new()
 	packed_scene.pack(scene)

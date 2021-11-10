@@ -1,7 +1,7 @@
 extends Reference
 
 # returns the scene after reading the dd2vtt output
-func parse_dd2vtt(data:Dictionary, import_walls: bool, root_name:String = 'Map')->Node2D:
+func parse_dd2vtt(data:Dictionary, options: Dictionary, root_name:String = 'Map')->Node2D:
 	print('parsing')
 	print(data.resolution)
 	var root = Node2D.new()
@@ -22,17 +22,26 @@ func parse_dd2vtt(data:Dictionary, import_walls: bool, root_name:String = 'Map')
 	sprite.owner = root
 	
 	# read line of sight blockers
-	if import_walls:
+	if options['Walls as Lines'] or options['Walls as Occluders']:
 		for blocker in data.line_of_sight:
-			var line:= Line2D.new()
 			var offset = Vector2(-data.resolution.map_size.x*data.resolution.pixels_per_grid/2,
-				-data.resolution.map_size.y*data.resolution.pixels_per_grid/2)
+								 -data.resolution.map_size.y*data.resolution.pixels_per_grid/2)
 			var points = dict2vector2array(blocker, data.resolution.pixels_per_grid,offset)
-			line.points = points
-			root.add_child(line)
-			line.owner = root
-	
-	
+			if options['Walls as Lines']:
+				var line:= Line2D.new()
+				line.points = points
+				root.add_child(line)
+				line.owner = root
+			if options['Walls as Occluders']:
+				var occluder := LightOccluder2D.new()
+				occluder.occluder = OccluderPolygon2D.new()
+				var occluder_points: PoolVector2Array
+				occluder_points.append_array(points)
+				points.invert()
+				occluder_points.append_array(points)
+				occluder.occluder.polygon = occluder_points
+				root.add_child(occluder)
+				occluder.owner = root
 	return root
 
 # reads dd2vtt file to return a json
@@ -49,8 +58,8 @@ func read_json(file_path:String)->Dictionary:
 	return data_parse.result
 
 
-func dict2vector2array(dict:Array,multiplier:float, offset:Vector2):
+func dict2vector2array(dict_array:Array,multiplier:float, offset:Vector2):
 	var array: PoolVector2Array
-	for x in dict:
+	for x in dict_array:
 		array.append(Vector2(x.x*multiplier+offset.x,x.y*multiplier+offset.y))
 	return array

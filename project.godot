@@ -15,7 +15,7 @@ config/icon="res://icon.png"
 
 [editor_plugins]
 
-enabled=PoolStringArray( "res://addons/dd2vt/plugin.cfg" )
+enabled=PoolStringArray( "res://addons/dd2vtt/plugin.cfg" )
 
 [physics]
 
