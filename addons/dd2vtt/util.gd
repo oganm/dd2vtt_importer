@@ -2,11 +2,6 @@ extends Reference
 
 # returns the scene after reading the dd2vtt output
 func parse_dd2vtt(data:Dictionary, options: Dictionary, root_name:String = 'Map')->Node2D:
-	print('parsing')
-	print(data.keys())
-	print(data.objects_line_of_sight)
-	print(data.portals)
-	print(data.environment)
 	var root = Node2D.new()
 	root.name = root_name
 	
@@ -51,7 +46,8 @@ func parse_dd2vtt(data:Dictionary, options: Dictionary, root_name:String = 'Map'
 				occluder_points.append_array(points)
 				points.invert()
 				occluder_points.append_array(points)
-				occluder.occluder.polygon = occluder_points
+				occluder.occluder.polygon = points
+				occluder.occluder.closed = false
 				OccluderWalls.add_child(occluder)
 				occluder.owner = root
 				

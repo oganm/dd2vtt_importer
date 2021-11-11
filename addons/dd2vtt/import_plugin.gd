@@ -49,7 +49,6 @@ func get_option_visibility(option, options):
 
 
 func import(source_file, save_path, options, platform_variants, gen_files):
-	print(options)
 	var utils = utils_ref.new()
 	var data = utils.read_json(source_file)
 	
