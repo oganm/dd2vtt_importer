@@ -1,30 +1,32 @@
-tool
+@tool
 extends EditorImportPlugin
 
 enum Presets { DEFAULT }
 
 const utils_ref = preload("util.gd")
 
-func get_importer_name():
+func _get_importer_name():
 	return "dd2vtt.importer"
 
-func get_visible_name():
+func _get_visible_name():
 	return "dd2vtt Map"
 
-func get_recognized_extensions():
+func _get_recognized_extensions():
 	return ["dd2vtt"]
 
-func get_save_extension():
+func _get_save_extension():
 	return "scn"
 
-func get_resource_type():
+func _get_resource_type():
 	return "PackedScene"
 
-
-func get_preset_count():
+func _get_preset_count():
 	return Presets.size()
 
-func get_preset_name(preset):
+func _get_import_order():
+	return 0
+
+func _get_preset_name(preset):
 	match preset:
 		Presets.DEFAULT:
 			return "Default"
@@ -33,8 +35,11 @@ func get_preset_name(preset):
 
 var lights 
 
-func get_import_options(preset):
-	match preset:
+func _get_priority():
+	return 1
+
+func _get_import_options(path: String, preset_index: int):
+	match preset_index:
 		Presets.DEFAULT:
 			return [{'name':'Walls as Occluders','default_value':true},
 					{'name':'Walls as Lines','default_value':true},
@@ -44,11 +49,11 @@ func get_import_options(preset):
 		_:
 			return []
 
-func get_option_visibility(option, options):
+func _get_option_visibility(path: String, option_name: StringName, options: Dictionary):
 	return true
 
 
-func import(source_file, save_path, options, platform_variants, gen_files):
+func _import(source_file, save_path, options, platform_variants, gen_files):
 	var utils = utils_ref.new()
 	var data = utils.read_json(source_file)
 	
@@ -56,5 +61,5 @@ func import(source_file, save_path, options, platform_variants, gen_files):
 	
 	var packed_scene = PackedScene.new()
 	packed_scene.pack(scene)
-	return ResourceSaver.save("%s.%s" % [save_path, get_save_extension()], packed_scene)
+	return ResourceSaver.save(packed_scene, "%s.%s" % [save_path, _get_save_extension()])
 

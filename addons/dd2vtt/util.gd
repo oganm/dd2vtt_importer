@@ -1,4 +1,4 @@
-extends Reference
+extends RefCounted
 
 # returns the scene after reading the dd2vtt output
 func parse_dd2vtt(data:Dictionary, options: Dictionary, root_name:String = 'Map')->Node2D:
@@ -9,11 +9,12 @@ func parse_dd2vtt(data:Dictionary, options: Dictionary, root_name:String = 'Map'
 	var image_raw = Marshalls.base64_to_raw(data.image)
 	var image = Image.new()
 	image.load_png_from_buffer(image_raw)
-	var texture = ImageTexture.new()
-	texture.create_from_image(image)
+
+	var texture := ImageTexture.new()
+	texture.set_image(image)
 	
 	# add tecture as a sprite
-	var sprite = Sprite.new()
+	var sprite = Sprite2D.new()
 	sprite.name = 'Map'
 	sprite.texture = texture
 	root.add_child(sprite)
@@ -33,7 +34,7 @@ func parse_dd2vtt(data:Dictionary, options: Dictionary, root_name:String = 'Map'
 			OccluderWalls.owner = root
 		
 		for blocker in data.line_of_sight:
-			var points = dict2vector2array(blocker, data.resolution)
+			var points := dict2vector2array(blocker, data.resolution)
 			if options['Walls as Lines']:
 				var line:= Line2D.new()
 				line.points = points
@@ -42,9 +43,9 @@ func parse_dd2vtt(data:Dictionary, options: Dictionary, root_name:String = 'Map'
 			if options['Walls as Occluders']:
 				var occluder := LightOccluder2D.new()
 				occluder.occluder = OccluderPolygon2D.new()
-				var occluder_points: PoolVector2Array
+				var occluder_points: Array
 				occluder_points.append_array(points)
-				points.invert()
+				points.reverse()
 				occluder_points.append_array(points)
 				occluder.occluder.polygon = points
 				occluder.occluder.closed = false
@@ -59,7 +60,7 @@ func parse_dd2vtt(data:Dictionary, options: Dictionary, root_name:String = 'Map'
 		for light in data.lights:
 			var light2d := Light2D.new()
 			light2d.position = convert_coords(Vector2(light.position.x,light.position.y),data.resolution)
-			light2d.texture = StreamTexture.new()
+			light2d.texture = Texture2D.new()
 			light2d.set_texture(options['Light Texture'])
 			light2d.shadow_enabled = true
 			light2d.color = light.color
@@ -86,25 +87,17 @@ func parse_dd2vtt(data:Dictionary, options: Dictionary, root_name:String = 'Map'
 
 # reads dd2vtt file to return a json
 func read_json(file_path:String)->Dictionary:
-	var file = File.new()
-	var err = file.open(file_path, File.READ)
-	var data = file.get_as_text()
-	file.close()
-	
-	var data_parse: JSONParseResult = JSON.parse(data)
-	if typeof(data_parse.result) != TYPE_DICTIONARY:
-		push_error('Could not parse json')
-		
-	return data_parse.result
-
+	var json = FileAccess.get_file_as_string(file_path)
+	var data = JSON.parse_string(json)
+	return data
 
 func convert_coords(vect: Vector2, resolution: Dictionary)->Vector2:
 	return Vector2(vect.x*resolution.pixels_per_grid -resolution.map_size.x*resolution.pixels_per_grid/2,
-				   vect.y*resolution.pixels_per_grid -resolution.map_size.x*resolution.pixels_per_grid/2)
+		vect.y*resolution.pixels_per_grid -resolution.map_size.y*resolution.pixels_per_grid/2)
 	
 
-func dict2vector2array(dict_array:Array,resolution:Dictionary):
-	var array: PoolVector2Array
+func dict2vector2array(dict_array:Array,resolution:Dictionary) -> Array:
+	var array: Array
 	for x in dict_array:
 		array.append(convert_coords(Vector2(x.x,x.y),resolution))
 	return array
